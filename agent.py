@@ -3,8 +3,8 @@ from tools import ScreenTools, ShellSession
 from google.genai import types
 
 class Agent:
-    def __init__(self, history, model_name: str = "gemini-flash-latest"):
-        self.client = Client(history=history, model_name=model_name)
+    def __init__(self, history, model_name: str = "gemini-flash-latest", preset="default", prompt=""):
+        self.client = Client(history=history, model_name=model_name, preset=preset, prompt=prompt)
         self.history = self.client.history
         self.shell = ShellSession()
 

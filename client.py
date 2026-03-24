@@ -5,13 +5,13 @@ from google.genai import types
 
 
 class Client:
-    def __init__(self, history: list = [], model_name: str = "gemini-3.1-flash-lite-preview", prompt_preset: str = "default", prompt: str = ""):
+    def __init__(self, history: list = [], model_name: str = "gemini-3.1-flash-lite-preview", preset: str = "default", prompt: str = ""):
         self.history = history
         self.client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
         self.model_name = model_name
-        if prompt_preset == "default":
+        if preset == "default":
             self.system_prompt = " "
-        if prompt_preset == "tools":
+        if preset == "tools":
             self.system_prompt = """
             Ты системный агент.
             Ты можешь вызывать только одну функцию в одном сообщении. Вызывай в последней строке.
@@ -35,7 +35,7 @@ class Client:
             #конец аргумента
             ```
             """
-        if prompt_preset == "custom":
+        if preset == "custom":
             if prompt == "": print("""Custom system prompt is undefined. Use the "default" or "tools" preset, or define the "prompt" argument.""")
             else: self.system_prompt = prompt
 
