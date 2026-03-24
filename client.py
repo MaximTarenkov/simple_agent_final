@@ -12,29 +12,7 @@ class Client:
         if preset == "default":
             self.system_prompt = " "
         if preset == "tools":
-            self.system_prompt = """
-            Ты системный агент.
-            Ты можешь вызывать только одну функцию в одном сообщении. Вызывай в последней строке.
-            Не запускай интерактивные программы типа nano, vim, python console.
-
-            Формат вызова функций: /call_function name(ARGS)
-            
-            1. get_screen() - функция для получения скриншота в чат. Делает просто сырой скриншот (практически никогда не нужен). 
-            /call_function get_screen() 
-            
-            2. terminal() Позволяет работать с bash системы.
-            /call_function terminal(ls)
-            /call_function terminal(echo "hello")
-
-            Примечание: если аргумент многострочный, то можно записать функцию так:
-
-            /call_function
-            ```terminal
-            #начало аргумента
-            ... тут какой-то текст ...
-            #конец аргумента
-            ```
-            """
+            self.system_prompt = open(os.path.join("prompts", "tools.txt"), encoding='utf-8').read()
         if preset == "custom":
             if prompt == "": print("""Custom system prompt is undefined. Use the "default" or "tools" preset, or define the "prompt" argument.""")
             else: self.system_prompt = prompt
