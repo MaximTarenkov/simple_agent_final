@@ -1,6 +1,6 @@
 import inspect
 from client import Client
-from tools import ScreenTools, ShellSession
+from tools import ScreenTools, ShellSession, Fcopy
 
 class Agent:
     def __init__(self, history=None, model_name: str = "gemini/gemini-flash-latest", preset="default", prompt=""):
@@ -8,7 +8,8 @@ class Agent:
         
         self.tools = {
             "screen": ScreenTools.get_screen_bytes,
-            "terminal": self.shell.get_full_form
+            "terminal": self.shell.get_full_form,
+            "fcopy": Fcopy.run
         }
 
         self.client = Client(history=history, model_name=model_name, tool_names=list(self.tools.keys()), preset=preset, prompt=prompt)

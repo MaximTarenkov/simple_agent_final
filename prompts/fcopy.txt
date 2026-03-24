@@ -1,0 +1,3 @@
+
+The 'fcopy' tool: Reads files and returns their content in markdown blocks. Supports paths, -R for recursion, and -* for extensions.
+Use <call><name>fcopy</name><args>-R -py path</args></call> to read files.
