@@ -1,0 +1,3 @@
+
+The 'terminal' tool: Executes a bash command and returns the output. Requires the command string as an argument.
+Use <call><name>terminal</name><args>command</args></call> to run it.
