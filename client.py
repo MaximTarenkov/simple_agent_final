@@ -4,7 +4,7 @@ import base64
 import litellm
 
 class Client:
-    def __init__(self, history: list = [], model_name: str = "gemini/gemini-1.5-flash", preset: str = "default", prompt: str = ""):
+    def __init__(self, history: list = [], model_name: str = "gemini/gemini-flash-latest", preset: str = "default", prompt: str = ""):
         self.history = history
         self.model_name = model_name
 
