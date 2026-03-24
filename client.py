@@ -1,54 +1,55 @@
 import os
 import re
-from google import genai
-from google.genai import types
-
+import base64
+import litellm
 
 class Client:
-    def __init__(self, history: list = [], model_name: str = "gemini-3.1-flash-lite-preview", preset: str = "default", prompt: str = ""):
+    def __init__(self, history: list = [], model_name: str = "gemini/gemini-1.5-flash", preset: str = "default", prompt: str = ""):
         self.history = history
-        self.client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
         self.model_name = model_name
+
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        
         if preset == "default":
             self.system_prompt = " "
-        if preset == "tools":
-            self.system_prompt = open(os.path.join("prompts", "tools.txt"), encoding='utf-8').read()
-        if preset == "custom":
-            if prompt == "": print("""Custom system prompt is undefined. Use the "default" or "tools" preset, or define the "prompt" argument.""")
-            else: self.system_prompt = prompt
+        elif preset == "tools":
+            self.system_prompt = open(os.path.join(base_dir, "prompts", "tools.txt"), encoding='utf-8').read()
+        elif preset == "custom":
+            if prompt == "":
+                print("""Custom system prompt is undefined. Use the "default" or "tools" preset, or define the "prompt" argument.""")
+            else:
+                self.system_prompt = prompt
 
-
-    def _build_history(self, raw_history: list) -> list[types.Content]:
-        contents = []
+    def _build_history(self, raw_history: list) -> list:
+        messages = [{"role": "system", "content": self.system_prompt}]
         
         for role_id, message_data in raw_history:
-            role_id = str(role_id)
-            if role_id in ["0", "m", "model", "assistant"]: role_str = 'model'  
-            elif role_id in ["1", "u", "user"]: role_str = 'user'
-            else: raise ValueError(f"Unknown role: {role_id}. Use correct role.")
+            role_str = 'assistant' if str(role_id) in ["0", "m", "model", "assistant"] else 'user'
             
             parts = []
-            
             if not isinstance(message_data, list):
                 message_data = [message_data]
 
             for item in message_data:
                 if isinstance(item, bytes):
-                    part = types.Part.from_bytes(data=item, mime_type="image/png")
-                    parts.append(part)
+                    b64_img = base64.b64encode(item).decode('utf-8')
+                    parts.append({
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{b64_img}"}
+                    })
                 else:
-                    part = types.Part.from_text(text=str(item))
-                    parts.append(part)
+                    parts.append({"type": "text", "text": str(item)})
 
-            content = types.Content(role=role_str, parts=parts)
-            contents.append(content)
+            if len(parts) == 1 and parts[0]["type"] == "text":
+                messages.append({"role": role_str, "content": parts[0]["text"]})
+            else:
+                messages.append({"role": role_str, "content": parts})
 
-        return contents
+        return messages
 
     def add_message(self, content, role='u'):
         if content is None: raise ValueError("Content is None!")
         self.history.append([role, content])
-    
 
     def check_function(self, text: str):
         if not text: return None, None
@@ -66,28 +67,20 @@ class Client:
                 args = args[1:-1]
 
             if func_name in ["get_screen", "screen", "screenshot"]: return 0, None
-
             if func_name in ["terminal", "bash", "run", "cmd"]: return 1, args
 
         return None, None
 
-
-    def generate(self, t=0.7, thinking_budget=0) -> list:
-        contents = self._build_history(self.history)
+    def generate(self, t=0.7, thinking_budget=0) -> str:
+        messages = self._build_history(self.history)
         
-        gen_config = types.GenerateContentConfig(
-                temperature=t,
-                thinking_config=types.ThinkingConfig(thinking_budget=thinking_budget),
-                system_instruction=[types.Part.from_text(text=self.system_prompt),],
-            )
-
-        response = self.client.models.generate_content(
+        response = litellm.completion(
             model=self.model_name,
-            contents=contents,
-            config=gen_config
+            messages=messages,
+            temperature=t
         )
 
-        text_resp = response.text if response.text else " "
+        text_resp = response.choices[0].message.content or " "
         
         self.add_message(text_resp, "m")
         
