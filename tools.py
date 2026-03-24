@@ -1,9 +1,7 @@
-import subprocess
-import time
-import fcntl
 import os
 import io
 import mss
+import pexpect
 from PIL import Image
 
 class ScreenTools:
@@ -23,63 +21,21 @@ class ScreenTools:
 
 class ShellSession:
     def __init__(self):
-        home_dir = os.path.expanduser("~")
+        self.sh = pexpect.spawn('/bin/bash --norc --noprofile', cwd=os.path.expanduser('~'), encoding='utf-8', echo=False)
+        self.sh.sendline('export TERM=dumb; unset PROMPT_COMMAND; export PS1="[P]\\u@\\h:\\w\\$ "')
+        self.sh.expect(r'\[P\](.*?[#\$] )')
+        self.prompt = self.sh.match.group(1).strip()
 
-        self.process = subprocess.Popen(
-            ["/bin/bash"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT, # Ошибки тоже в stdout
-            text=True,
-            bufsize=0,
-            shell=False,
-            cwd=home_dir
-
-        )
-        # Non-blocking IO magic
-        fd = self.process.stdout.fileno()
-        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
-        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-
-    def run_command(self, cmd: str, timeout=100000) -> str:
-        sentinel = "___END_MARKER___"
-        full_cmd = f"{cmd}; echo '{sentinel}'\n"
-        
+    def run_command(self, cmd: str, timeout=100) -> str:
+        self.sh.sendline(cmd)
         try:
-            self.process.stdin.write(full_cmd)
-            self.process.stdin.flush()
-        except BrokenPipeError:
-            return "Error: Bash process died. Please restart agent."
+            self.sh.expect(r'\[P\](.*?[#\$] )', timeout=timeout)
+            self.prompt = self.sh.match.group(1).strip()
+            return self.sh.before.strip()
+        except pexpect.TIMEOUT:
+            return "[Timeout]"
 
-        output = []
-        start_time = time.time()
-        
-        while True:
-            if time.time() - start_time > timeout:
-                output.append("\n[Timeout]")
-                break
-            try:
-                chunk = self.process.stdout.read()
-                if chunk:
-                    output.append(chunk)
-                    if sentinel in "".join(output):
-                        break
-            except Exception:
-                time.sleep(0.05)
-                
-        result = "".join(output).replace(f"{sentinel}\n", "").replace(sentinel, "").strip()
-
-        return result
-
-    def get_full_form(self, cmd=None):
-        user = self.run_command("whoami").strip()
-        path = self.run_command("pwd").strip()
-        
-        prompt = f"{user}@fedora:{path}$"
-        
-        if cmd is None: 
-            return prompt
-            
-        cmd_output = self.run_command(cmd)
-        
-        return f"```bash \n{cmd_output}\n{prompt}\n```"
+    def get_full_form(self, cmd=None) -> str:
+        if not cmd:
+            return self.prompt
+        return f"```bash\n{self.run_command(cmd)}\n{self.prompt}\n```"
