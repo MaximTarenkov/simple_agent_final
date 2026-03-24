@@ -1,0 +1,4 @@
+
+The 'screen' tool: Takes a screenshot. No arguments are required.
+Use <call><name>screen</name></call> to get the image.
+
