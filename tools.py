@@ -22,7 +22,7 @@ class ScreenTools:
 
 class ShellSession:
     def __init__(self):
-        self.sh = pexpect.spawn('/bin/bash --norc --noprofile', cwd=os.path.expanduser('~'), encoding='utf-8', echo=False)
+        self.sh = pexpect.spawn('/bin/bash --norc --noprofile', encoding='utf-8', echo=False)
         self.sh.sendline('export TERM=dumb; unset PROMPT_COMMAND; export PS1="[P]\\u@\\h:\\w\\$ "')
         self.sh.expect(r'\[P\](.*?[#\$] )')
         self.prompt = self.sh.match.group(1).strip()

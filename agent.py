@@ -1,9 +1,11 @@
+import os
 import inspect
 from client import Client
 from tools import ScreenTools, ShellSession, Fcopy
 
 class Agent:
-    def __init__(self, history=None, model_name: str = "gemini/gemini-flash-latest", preset="default", prompt=""):
+    def __init__(self, history=None, model_name: str = "gemini/gemini-flash-latest", preset="default", prompt="", cwd="~"):
+        os.chdir(os.path.expanduser(cwd))
         self.shell = ShellSession()
         
         self.tools = {
