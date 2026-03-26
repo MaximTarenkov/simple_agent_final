@@ -3,6 +3,8 @@ import re
 import base64
 import litellm
 
+litellm.drop_params = True
+
 class Client:
     def __init__(self, history = None, model_name: str = "gemini/gemini-flash-latest", tool_names: list = [], preset: str = "default", prompt: str = ""):
         self.history = history if history is not None else []
@@ -75,14 +77,18 @@ class Client:
     def generate(self, t=0.7, thinking_budget=0) -> str:
         messages = self._build_history(self.history)
         
-        response = litellm.completion(
-            model=self.model_name,
-            messages=messages,
-            temperature=t
-        )
+        kwargs = {"model": self.model_name, "messages": messages, "temperature": t}
+        if thinking_budget > 0:
+            kwargs["thinking"] = {"type": "enabled", "budget_tokens": thinking_budget}
 
-        text_resp = response.choices[0].message.content or " "
+        response = litellm.completion(**kwargs)
+        
+        msg = response.choices[0].message
+        reasoning = getattr(msg, 'reasoning_content', None)
+        text_resp = msg.content or ""
+
+        if reasoning:
+            text_resp = f"<thought>\n{reasoning}\n</thought>\n\n{text_resp}"
         
         self.add_message(text_resp, "m")
-        
         return text_resp
