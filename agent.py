@@ -37,7 +37,7 @@ class Agent:
         for _ in range(loop):
             response = self.client.generate(t=t, thinking_budget=thinking_budget)
 
-            print(response)
+            # print(response)
 
             func_name, args = self.client.check_function(response)
 

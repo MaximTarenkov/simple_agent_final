@@ -4,3 +4,4 @@ If you need to use a tool, use the format:
 <args>arguments_if_need</args>
 </call>
 After that, wait for a response from the system.
+You can only make each team call at the end of the message.
