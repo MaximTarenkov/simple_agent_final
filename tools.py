@@ -23,7 +23,13 @@ class ScreenTools:
 class ShellSession:
     def __init__(self):
         self.sh = pexpect.spawn('/bin/bash --norc --noprofile', encoding='utf-8', echo=False)
-        self.sh.sendline('export TERM=dumb; unset PROMPT_COMMAND; export PS1="[P]\\u@\\h:\\w\\$ "')
+        init_cmd = (
+            'export TERM=dumb; unset PROMPT_COMMAND; '
+            'export PATH=$(echo $PATH | tr ":" "\\n" | grep -vF "$CONDA_PREFIX/bin" | tr "\\n" ":" | sed "s/:$//"); '
+            'unset CONDA_PREFIX CONDA_DEFAULT_ENV CONDA_SHLVL; '
+            'export PS1="[P]\\u@\\h:\\w\\$ "'
+        )
+        self.sh.sendline(init_cmd)
         self.sh.expect(r'\[P\](.*?[#\$] )')
         self.prompt = self.sh.match.group(1).strip()
 
