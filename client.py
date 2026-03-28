@@ -6,7 +6,7 @@ import litellm
 litellm.drop_params = True
 
 class Client:
-    def __init__(self, history = None, model_name: str = "gemini/gemini-flash-latest", tool_names: list = [], preset: str = "default", prompt: str = ""):
+    def __init__(self, history, model_name: str = "gemini/gemini-flash-latest", tool_names: list = [], preset: str = "default", prompt: str = ""):
         self.history = history if history is not None else []
         self.model_name = model_name
 
@@ -55,7 +55,7 @@ class Client:
 
         return messages
 
-    def add_message(self, content, role='u'):
+    def add_message(self, content, role):
         if content is None: raise ValueError("Content is None!")
         self.history.append([role, content])
 

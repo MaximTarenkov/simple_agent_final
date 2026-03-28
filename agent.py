@@ -15,7 +15,6 @@ class Agent:
         }
 
         self.client = Client(history=history, model_name=model_name, tool_names=list(self.tools.keys()), preset=preset, prompt=prompt)
-        self.history = history if history is not None else []
 
     def _execute_tool(self, func_name: str, args: str):
         if func_name not in self.tools:
