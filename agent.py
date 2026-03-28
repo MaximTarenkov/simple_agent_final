@@ -52,3 +52,6 @@ class Agent:
             self.client.add_message(tool_result, "u")
         
         return response
+
+    def add(self, content, role='u'):
+        return self.client.add_message(content, role=role)
