@@ -37,6 +37,18 @@ class Agent:
         self.safety = Safety(confirm_mode=confirm_mode)
         self._generator = None
 
+    def _execute_tool(self, func_name: str, args: str):
+        if func_name not in self.tools:
+            return f"Error: Tool {func_name} not found"
+
+        func = self.tools[func_name]
+        print(f"[Agent] Executing tool {func_name} with args: {args}")
+
+        try:
+            return func(args) if args is not None else func()
+        except Exception as e:
+            return f"Error executing tool: {e}"
+
     def chat(self, t=0.7, thinking_budget=-1, loop=1):
         self._generator = self._loop(t, thinking_budget, loop)
         return self.confirm()
@@ -79,3 +91,6 @@ class Agent:
             loops -= 1
 
         return resp
+
+    def add(self, content, role="u"):
+        return self.client.add_message(content, role=role)
