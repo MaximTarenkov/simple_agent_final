@@ -23,9 +23,12 @@ class ScreenTools:
 
 
 class ShellSession:
-    def __init__(self):
+    def __init__(self, cwd="~"):
         self.sh = pexpect.spawn(
-            "/bin/bash --norc --noprofile", encoding="utf-8", echo=False
+            "/bin/bash --norc --noprofile",
+            cwd=os.path.expanduser(cwd),
+            encoding="utf-8",
+            echo=False,
         )
         init_cmd = (
             "export TERM=dumb; unset PROMPT_COMMAND; "
@@ -46,7 +49,7 @@ class ShellSession:
             self.prompt = self.sh.match.group(1).strip()
             return self.sh.before.strip()
         except pexpect.TIMEOUT:
-            return "[Timeout]"
+            return f"{self.sh.before.strip()}\n[Timeout]"
 
     def get_full_form(self, cmd=None) -> str:
         if not cmd:

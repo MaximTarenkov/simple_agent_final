@@ -11,15 +11,18 @@ class Agent:
         preset="default",
         prompt="",
         cwd="~",
+        tools=None,
     ):
-        os.chdir(os.path.expanduser(cwd))
-        self.shell = ShellSession()
+        self.shell = ShellSession(cwd=cwd)
 
-        self.tools = {
+        all_tools = {
             "screen": ScreenTools.get_screen_bytes,
             "terminal": self.shell.get_full_form,
             "fcopy": Fcopy.run,
         }
+
+        tool_keys = tools if tools is not None else list(all_tools.keys())
+        self.tools = {k: all_tools[k] for k in tool_keys if k in all_tools}
 
         self.client = Client(
             history=history,
@@ -47,8 +50,6 @@ class Agent:
 
         for _ in range(loop):
             response = self.client.generate(t=t, thinking_budget=thinking_budget)
-
-            # print(response)
 
             func_name, args = self.client.check_function(response)
 
