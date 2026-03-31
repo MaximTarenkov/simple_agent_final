@@ -1,11 +1,11 @@
+import re
+
+
 class Safety:
-    def __init__(self, agent, confirm_mode="auto"):
-        self.agent = agent
+    def __init__(self, confirm_mode="auto"):
         self.confirm_mode = confirm_mode
         self._bl_in = set()
         self._bl_out = set()
-        self._pending = None
-        self._state = {}
 
     def blacklist_input(self, add=None, remove=None):
         if add:
@@ -19,58 +19,17 @@ class Safety:
         if remove:
             self._bl_out.difference_update(remove)
 
-    def confirm(self):
-        while self._pending:
-            task, *args = self._pending
-            self._pending = None
+    def _check_bl(self, text, bl):
+        if not bl or not text:
+            return False
+        pattern = r"\b(?:" + "|".join(map(re.escape, bl)) + r")\b"
+        return bool(re.search(pattern, text, re.IGNORECASE))
 
-            if task == "_step":
-                if self._state["loops"] <= 0:
-                    return self._state["res"]
-                last_msg = (
-                    str(self.agent.client.history[-1][1])
-                    if self.agent.client.history
-                    else ""
-                )
-                if any(w in last_msg for w in self._bl_in):
-                    self._pending = ("_do_gen",)
-                    return "Blocked input."
-                self._pending = ("_do_gen",)
+    def check_input(self, text):
+        return self._check_bl(text, self._bl_in)
 
-            elif task == "_do_gen":
-                resp = self.agent.client.generate(
-                    t=self._state["t"], thinking_budget=self._state["tb"]
-                )
-                self._state["res"] = resp
-                if any(w in resp for w in self._bl_out):
-                    self._pending = ("_process", resp)
-                    return "Blocked output."
-                self._pending = ("_process", resp)
+    def check_output(self, text):
+        return self._check_bl(text, self._bl_out)
 
-            elif task == "_process":
-                func_name, fargs = self.agent.client.check_function(args[0])
-                if not func_name:
-                    self._state["loops"] = 0
-                    self._pending = ("_step",)
-                    continue
-
-                print(f"Found {func_name} tool")
-                if self.confirm_mode in ["tool", "all"]:
-                    self._pending = ("_exec", func_name, fargs)
-                    return f"Pending tool: {func_name}."
-                self._pending = ("_exec", func_name, fargs)
-
-            elif task == "_exec":
-                res = self.agent._execute_tool(args[0], args[1])
-                print(res)
-                if self.confirm_mode in ["result", "all"]:
-                    self._pending = ("_add", res)
-                    return "Pending result."
-                self._pending = ("_add", res)
-
-            elif task == "_add":
-                self.agent.client.add_message(args[0], "u")
-                self._state["loops"] -= 1
-                self._pending = ("_step",)
-
-        return self._state.get("res")
+    def pending(self, stage):
+        return self.confirm_mode in [stage, "all"]

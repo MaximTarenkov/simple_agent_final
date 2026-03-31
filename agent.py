@@ -34,28 +34,48 @@ class Agent:
             prompt=prompt,
         )
 
-        self.safety = Safety(self, confirm_mode=confirm_mode)
-
-    def _execute_tool(self, func_name: str, args: str):
-        if func_name not in self.tools:
-            return f"Error: Tool {func_name} not found"
-
-        func = self.tools[func_name]
-
-        print(f"[Agent] Executing tool {func_name} with args: {args}")
-
-        try:
-            return func(args) if args is not None else func()
-        except Exception as e:
-            return f"Error executing tool: {e}"
+        self.safety = Safety(confirm_mode=confirm_mode)
+        self._generator = None
 
     def chat(self, t=0.7, thinking_budget=-1, loop=1):
-        self.safety._state = {"t": t, "tb": thinking_budget, "loops": loop, "res": None}
-        self.safety._pending = ("_step",)
+        self._generator = self._loop(t, thinking_budget, loop)
         return self.confirm()
 
     def confirm(self):
-        return self.safety.confirm()
+        if self._generator:
+            try:
+                return next(self._generator)
+            except StopIteration as e:
+                self._generator = None
+                return e.value
+        return None
 
-    def add(self, content, role="u"):
-        return self.client.add_message(content, role=role)
+    def _loop(self, t, tb, loops):
+        while loops > 0:
+            last_msg = str(self.client.history[-1][1]) if self.client.history else ""
+            if self.safety.check_input(last_msg):
+                yield "Blocked input."
+
+            resp = self.client.generate(t=t, thinking_budget=tb)
+
+            if self.safety.check_output(resp):
+                yield "Blocked output."
+
+            func_name, fargs = self.client.check_function(resp)
+            if not func_name:
+                return resp
+
+            print(f"Found {func_name} tool")
+            if self.safety.pending("tool"):
+                yield f"Pending tool: {func_name}."
+
+            res = self._execute_tool(func_name, fargs)
+            print(res)
+
+            if self.safety.pending("result"):
+                yield "Pending result."
+
+            self.client.add_message(res, "u")
+            loops -= 1
+
+        return resp
