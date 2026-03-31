@@ -19,7 +19,7 @@ class Client:
         self.model_name = model_name
         tool_names = tool_names or []
 
-        base_dir = os.path.dirname(os.path.abspath(__file__))
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.system_prompt = ""
 
         if preset == "default":
@@ -75,7 +75,7 @@ class Client:
 
         return messages
 
-    def add_message(self, content, role):
+    def add_message(self, content, role="u"):
         if content is None:
             raise ValueError("Content is None!")
         self.history.append([role, content])

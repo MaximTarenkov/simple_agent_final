@@ -1,7 +1,7 @@
 import os
-from client import Client
 from tools.tools import get_tool_registry
-from safety import Safety
+from .client import Client
+from .safety import Safety
 
 
 class Agent:
