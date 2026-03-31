@@ -3,19 +3,20 @@ import io
 import mss
 import pexpect
 import shlex
+import re
 from pathlib import Path
 from PIL import Image
 
 
 class ScreenTools:
     @staticmethod
-    def get_screen_bytes(max_size=(1024, 768)) -> bytes:
+    def get_screen_bytes(args: str = "") -> bytes:
         with mss.mss() as sct:
-            monitor = sct.monitors[1]
+            monitor = sct.monitors[0]
             sct_img = sct.grab(monitor)
 
             img = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
-            img.thumbnail(max_size)
+            img.thumbnail((1024, 768))
 
             byte_arr = io.BytesIO()
             img.save(byte_arr, format="PNG")
@@ -23,13 +24,18 @@ class ScreenTools:
 
 
 class ShellSession:
-    def __init__(self):
+    def __init__(self, cwd="~"):
         self.sh = pexpect.spawn(
-            "/bin/bash --norc --noprofile", encoding="utf-8", echo=False
+            "/bin/bash --norc --noprofile",
+            cwd=os.path.expanduser(cwd),
+            encoding="utf-8",
+            echo=False,
         )
         init_cmd = (
             "export TERM=dumb; unset PROMPT_COMMAND; "
+            'if [ -n "$CONDA_PREFIX" ]; then '
             'export PATH=$(echo $PATH | tr ":" "\\n" | grep -vF "$CONDA_PREFIX/bin" | tr "\\n" ":" | sed "s/:$//"); '
+            "fi; "
             "unset CONDA_PREFIX CONDA_DEFAULT_ENV CONDA_SHLVL; "
             'export PS1="[P]\\u@\\h:\\w\\$ "'
         )
@@ -42,9 +48,13 @@ class ShellSession:
         try:
             self.sh.expect(r"\[P\](.*?[#\$] )", timeout=timeout)
             self.prompt = self.sh.match.group(1).strip()
-            return self.sh.before.strip()
+            out = self.sh.before.strip()
         except pexpect.TIMEOUT:
-            return "[Timeout]"
+            out = f"{self.sh.before.strip()}\n[Timeout]"
+
+        out = out.replace("\r\n", "\n")
+        out = "\n".join(line.split("\r")[-1] for line in out.split("\n"))
+        return re.sub(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])", "", out)
 
     def get_full_form(self, cmd=None) -> str:
         if not cmd:
@@ -71,21 +81,18 @@ class Fcopy:
                                 x.startswith(".") and x not in (".", "..")
                                 for x in f.parts
                             ):
-                                out.append(
-                                    f"```{f}\n{f.read_text(encoding='utf-8', errors='replace')}\n```"
-                                )
+                                text = f.read_text(encoding="utf-8", errors="replace")
+                                msg = "\n[Truncated]" if len(text) > 8192 else ""
+                                out.append(f"```{f}\n{text[:8192]}{msg}\n```")
                 else:
                     out.append(f"{path} is not a directory")
             else:
                 if ext and p.suffix.lstrip(".") != ext:
                     continue
                 if p.is_file():
-                    if not any(
-                        x.startswith(".") and x not in (".", "..") for x in p.parts
-                    ):
-                        out.append(
-                            f"```{p}\n{p.read_text(encoding='utf-8', errors='replace')}\n```"
-                        )
+                    text = p.read_text(encoding="utf-8", errors="replace")
+                    msg = "\n[Truncated]" if len(text) > 8192 else ""
+                    out.append(f"```{p}\n{text[:8192]}{msg}\n```")
                 else:
                     out.append(f"{path} not found")
 
