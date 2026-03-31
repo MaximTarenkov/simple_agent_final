@@ -1,6 +1,6 @@
 import os
 from client import Client
-from tools import ScreenTools, ShellSession, Fcopy
+from tools.tools import get_tool_registry
 from safety import Safety
 
 
@@ -15,13 +15,7 @@ class Agent:
         tools=None,
         confirm_mode="auto",
     ):
-        self.shell = ShellSession(cwd=cwd)
-
-        all_tools = {
-            "screen": ScreenTools.get_screen_bytes,
-            "terminal": self.shell.get_full_form,
-            "fcopy": Fcopy.run,
-        }
+        all_tools = get_tool_registry(cwd=cwd)
 
         tool_keys = tools if tools is not None else list(all_tools.keys())
         self.tools = {k: all_tools[k] for k in tool_keys if k in all_tools}

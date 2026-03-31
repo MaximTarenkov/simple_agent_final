@@ -1,7 +1,7 @@
 import os
 import json
 import pathlib
-from agent import Agent
+from core.agent import Agent
 
 
 def get_files(root_path, max_depth=2, exclude=None):
@@ -43,7 +43,7 @@ def build_map(path, base, index, depth=0, max_depth=2):
     return res
 
 
-root_dir = "../../"
+root_dir = "./"
 json_file = "repo_index.json"
 prompt_path = os.path.join("../prompts", "repo_analyzer.txt")
 
