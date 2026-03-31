@@ -81,16 +81,28 @@ class Client:
         self.history.append([role, content])
 
     def check_function(self, text: str):
-        if not text or "<call>" not in text:
+        if not text:
             return None, None
 
-        name_match = re.search(r"<name>\s*(.*?)\s*</name>", text, re.DOTALL)
+        call_match = re.search(
+            r"<call[^>]*>(.*?)</call>", text, re.DOTALL | re.IGNORECASE
+        )
+        if not call_match:
+            return None, None
+
+        call_block = call_match.group(1)
+
+        name_match = re.search(
+            r"<name[^>]*>\s*(.*?)\s*</name>", call_block, re.DOTALL | re.IGNORECASE
+        )
         if not name_match:
             return None, None
 
         func_name = name_match.group(1).strip()
 
-        args_match = re.search(r"<args>\s*(.*?)\s*</args>", text, re.DOTALL)
+        args_match = re.search(
+            r"<args[^>]*>\s*(.*?)\s*</args>", call_block, re.DOTALL | re.IGNORECASE
+        )
         args = args_match.group(1).strip() if args_match else None
 
         return func_name, args
