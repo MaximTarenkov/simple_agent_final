@@ -1,0 +1,5 @@
+Write the code, but follow the conditions
+1. Change only what is necessary. Don't touch the rest
+2. The code should be minimalistic and concise.
+3. The code should not contain unnecessary functions.
+4. It is forbidden to write comments in the code. Outside of the code, it is possible.
