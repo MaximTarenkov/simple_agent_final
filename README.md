@@ -48,7 +48,7 @@ with open('chat.json', 'w', encoding='utf-8') as f:
     json.dump(ag.client.history, f, ensure_ascii=False, indent=4)
 ```
 after that...
-```streamlit run app.py```
+```python app.py```
 
 - *Native saving is planned*
 
