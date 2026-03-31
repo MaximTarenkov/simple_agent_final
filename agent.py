@@ -3,25 +3,39 @@ import inspect
 from client import Client
 from tools import ScreenTools, ShellSession, Fcopy
 
+
 class Agent:
-    def __init__(self, history=None, model_name: str = "gemini/gemini-flash-latest", preset="default", prompt="", cwd="~"):
+    def __init__(
+        self,
+        history=None,
+        model_name: str = "gemini/gemini-flash-latest",
+        preset="default",
+        prompt="",
+        cwd="~",
+    ):
         os.chdir(os.path.expanduser(cwd))
         self.shell = ShellSession()
-        
+
         self.tools = {
             "screen": ScreenTools.get_screen_bytes,
             "terminal": self.shell.get_full_form,
-            "fcopy": Fcopy.run
+            "fcopy": Fcopy.run,
         }
 
-        self.client = Client(history=history, model_name=model_name, tool_names=list(self.tools.keys()), preset=preset, prompt=prompt)
+        self.client = Client(
+            history=history,
+            model_name=model_name,
+            tool_names=list(self.tools.keys()),
+            preset=preset,
+            prompt=prompt,
+        )
 
     def _execute_tool(self, func_name: str, args: str):
         if func_name not in self.tools:
             return f"Error: Tool {func_name} not found"
 
         func = self.tools[func_name]
-        
+
         print(f"[Agent] Executing tool {func_name} with args: {args}")
 
         try:
@@ -32,7 +46,7 @@ class Agent:
 
     def chat(self, t=0.7, thinking_budget=-1, loop=1):
         response = None
-        
+
         for _ in range(loop):
             response = self.client.generate(t=t, thinking_budget=thinking_budget)
 
@@ -41,16 +55,16 @@ class Agent:
             func_name, args = self.client.check_function(response)
 
             if func_name is None:
-                return response 
+                return response
 
             print(f"Found {func_name} tool")
-            
+
             tool_result = self._execute_tool(func_name, args)
             print(tool_result)
 
             self.client.add_message(tool_result, "u")
-        
+
         return response
 
-    def add(self, content, role='u'):
+    def add(self, content, role="u"):
         return self.client.add_message(content, role=role)

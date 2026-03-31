@@ -6,37 +6,41 @@ import shlex
 from pathlib import Path
 from PIL import Image
 
+
 class ScreenTools:
     @staticmethod
     def get_screen_bytes(max_size=(1024, 768)) -> bytes:
         with mss.mss() as sct:
             monitor = sct.monitors[1]
             sct_img = sct.grab(monitor)
-            
+
             img = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
             img.thumbnail(max_size)
-            
+
             byte_arr = io.BytesIO()
-            img.save(byte_arr, format='PNG')
+            img.save(byte_arr, format="PNG")
             return byte_arr.getvalue()
+
 
 class ShellSession:
     def __init__(self):
-        self.sh = pexpect.spawn('/bin/bash --norc --noprofile', encoding='utf-8', echo=False)
+        self.sh = pexpect.spawn(
+            "/bin/bash --norc --noprofile", encoding="utf-8", echo=False
+        )
         init_cmd = (
-            'export TERM=dumb; unset PROMPT_COMMAND; '
+            "export TERM=dumb; unset PROMPT_COMMAND; "
             'export PATH=$(echo $PATH | tr ":" "\\n" | grep -vF "$CONDA_PREFIX/bin" | tr "\\n" ":" | sed "s/:$//"); '
-            'unset CONDA_PREFIX CONDA_DEFAULT_ENV CONDA_SHLVL; '
+            "unset CONDA_PREFIX CONDA_DEFAULT_ENV CONDA_SHLVL; "
             'export PS1="[P]\\u@\\h:\\w\\$ "'
         )
         self.sh.sendline(init_cmd)
-        self.sh.expect(r'\[P\](.*?[#\$] )')
+        self.sh.expect(r"\[P\](.*?[#\$] )")
         self.prompt = self.sh.match.group(1).strip()
 
     def run_command(self, cmd: str, timeout=100) -> str:
         self.sh.sendline(cmd)
         try:
-            self.sh.expect(r'\[P\](.*?[#\$] )', timeout=timeout)
+            self.sh.expect(r"\[P\](.*?[#\$] )", timeout=timeout)
             self.prompt = self.sh.match.group(1).strip()
             return self.sh.before.strip()
         except pexpect.TIMEOUT:
@@ -46,6 +50,7 @@ class ShellSession:
         if not cmd:
             return self.prompt
         return f"```bash\n{self.run_command(cmd)}\n{self.prompt}\n```"
+
 
 class Fcopy:
     @staticmethod
@@ -61,17 +66,26 @@ class Fcopy:
             if rec:
                 if p.is_dir():
                     for f in p.rglob("*"):
-                        if f.is_file() and (not ext or f.suffix.lstrip('.') == ext):
-                            if not any(x.startswith('.') and x not in ('.', '..') for x in f.parts):
-                                out.append(f"```{f}\n{f.read_text(encoding='utf-8', errors='replace')}\n```")
+                        if f.is_file() and (not ext or f.suffix.lstrip(".") == ext):
+                            if not any(
+                                x.startswith(".") and x not in (".", "..")
+                                for x in f.parts
+                            ):
+                                out.append(
+                                    f"```{f}\n{f.read_text(encoding='utf-8', errors='replace')}\n```"
+                                )
                 else:
                     out.append(f"{path} is not a directory")
             else:
-                if ext and p.suffix.lstrip('.') != ext:
+                if ext and p.suffix.lstrip(".") != ext:
                     continue
                 if p.is_file():
-                    if not any(x.startswith('.') and x not in ('.', '..') for x in p.parts):
-                        out.append(f"```{p}\n{p.read_text(encoding='utf-8', errors='replace')}\n```")
+                    if not any(
+                        x.startswith(".") and x not in (".", "..") for x in p.parts
+                    ):
+                        out.append(
+                            f"```{p}\n{p.read_text(encoding='utf-8', errors='replace')}\n```"
+                        )
                 else:
                     out.append(f"{path} not found")
 
