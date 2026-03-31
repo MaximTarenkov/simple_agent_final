@@ -76,18 +76,18 @@ class Fcopy:
                                 x.startswith(".") and x not in (".", "..")
                                 for x in f.parts
                             ):
-                                out.append(
-                                    f"```{f}\n{f.read_text(encoding='utf-8', errors='replace')}\n```"
-                                )
+                                text = f.read_text(encoding="utf-8", errors="replace")
+                                msg = "\n[Truncated]" if len(text) > 8192 else ""
+                                out.append(f"```{f}\n{text[:8192]}{msg}\n```")
                 else:
                     out.append(f"{path} is not a directory")
             else:
                 if ext and p.suffix.lstrip(".") != ext:
                     continue
                 if p.is_file():
-                    out.append(
-                        f"```{p}\n{p.read_text(encoding='utf-8', errors='replace')}\n```"
-                    )
+                    text = p.read_text(encoding="utf-8", errors="replace")
+                    msg = "\n[Truncated]" if len(text) > 8192 else ""
+                    out.append(f"```{p}\n{text[:8192]}{msg}\n```")
                 else:
                     out.append(f"{path} not found")
 
