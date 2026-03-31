@@ -82,12 +82,9 @@ class Fcopy:
                 if ext and p.suffix.lstrip(".") != ext:
                     continue
                 if p.is_file():
-                    if not any(
-                        x.startswith(".") and x not in (".", "..") for x in p.parts
-                    ):
-                        out.append(
-                            f"```{p}\n{p.read_text(encoding='utf-8', errors='replace')}\n```"
-                        )
+                    out.append(
+                        f"```{p}\n{p.read_text(encoding='utf-8', errors='replace')}\n```"
+                    )
                 else:
                     out.append(f"{path} not found")
 
