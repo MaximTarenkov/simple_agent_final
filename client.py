@@ -11,38 +11,36 @@ class Client:
         self,
         history,
         model_name: str = "gemini/gemini-flash-latest",
-        tool_names: list = [],
+        tool_names: list = None,
         preset: str = "default",
         prompt: str = "",
     ):
         self.history = history if history is not None else []
         self.model_name = model_name
+        tool_names = tool_names or []
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.system_prompt = ""
 
         if preset == "default":
             self.system_prompt = " "
         elif preset == "tools":
             base_path = os.path.join(base_dir, "prompts", "tools.txt")
-            self.system_prompt = (
-                open(base_path, encoding="utf-8").read()
-                if os.path.exists(base_path)
-                else ""
-            )
+            if os.path.exists(base_path):
+                with open(base_path, encoding="utf-8") as f:
+                    self.system_prompt = f.read()
 
             for tool in tool_names:
                 tool_path = os.path.join(base_dir, "prompts", f"{tool}.txt")
                 if os.path.exists(tool_path):
-                    self.system_prompt += (
-                        f"\n{open(tool_path, encoding='utf-8').read()}"
-                    )
+                    with open(tool_path, encoding="utf-8") as f:
+                        self.system_prompt += f"\n{f.read()}"
         elif preset == "custom":
-            if prompt == "":
+            self.system_prompt = prompt
+            if not prompt:
                 print(
                     """Custom system prompt is undefined. Use the "default" or "tools" preset, or define the "prompt" argument."""
                 )
-            else:
-                self.system_prompt = prompt
 
     def _build_history(self, raw_history: list) -> list:
         messages = [{"role": "system", "content": self.system_prompt}]
