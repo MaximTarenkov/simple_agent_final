@@ -1,5 +1,4 @@
 import os
-import inspect
 from client import Client
 from tools import ScreenTools, ShellSession, Fcopy
 
@@ -39,8 +38,7 @@ class Agent:
         print(f"[Agent] Executing tool {func_name} with args: {args}")
 
         try:
-            sig = inspect.signature(func)
-            return func(args) if len(sig.parameters) > 0 and args else func()
+            return func(args) if args is not None else func()
         except Exception as e:
             return f"Error executing tool: {e}"
 
