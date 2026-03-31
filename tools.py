@@ -29,7 +29,9 @@ class ShellSession:
         )
         init_cmd = (
             "export TERM=dumb; unset PROMPT_COMMAND; "
+            'if [ -n "$CONDA_PREFIX" ]; then '
             'export PATH=$(echo $PATH | tr ":" "\\n" | grep -vF "$CONDA_PREFIX/bin" | tr "\\n" ":" | sed "s/:$//"); '
+            "fi; "
             "unset CONDA_PREFIX CONDA_DEFAULT_ENV CONDA_SHLVL; "
             'export PS1="[P]\\u@\\h:\\w\\$ "'
         )
