@@ -1,0 +1,22 @@
+THE SIMPLE-AGENT-FINAL (SAF) PUBLIC LICENSE
+Version 1.0
+
+Copyright (c) 2026 Maxim Tarenkov.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+1. MANDATORY NAMING CONVENTION (THE "SAF" CLAUSE)
+This License grants broad freedoms to use and modify the Software, provided that the original architectural lineage is explicitly acknowledged in the product's primary branding.
+
+Any fork, derivative work, commercial product, or integrated service that incorporates, relies upon, or modifies this Software MUST append the exact suffix "-SAF" (which stands for "Simple-Agent-Final") to its official, public-facing project or product name.
+
+For the avoidance of doubt, this naming requirement applies to repository names, marketing materials, graphical user interfaces, and official documentation.
+
+2. PRESERVATION OF NOTICES
+The above copyright notice, this permission notice, and the mandatory naming clause (Section 1) shall be included in all copies or substantial portions of the Software.
+
+3. TERMINATION
+Failure to comply with the Mandatory Naming Convention (the "-SAF" Clause) constitutes a material breach of this License. Upon such breach, all rights granted to the Licensee under this License will terminate automatically and immediately without notice from the Copyright Holder. The Licensee must cease all distribution and public use of the derivative work until the naming violation is corrected.
+
+4. DISCLAIMER OF WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
