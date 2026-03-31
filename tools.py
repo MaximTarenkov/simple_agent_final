@@ -3,6 +3,7 @@ import io
 import mss
 import pexpect
 import shlex
+import re
 from pathlib import Path
 from PIL import Image
 
@@ -47,9 +48,13 @@ class ShellSession:
         try:
             self.sh.expect(r"\[P\](.*?[#\$] )", timeout=timeout)
             self.prompt = self.sh.match.group(1).strip()
-            return self.sh.before.strip()
+            out = self.sh.before.strip()
         except pexpect.TIMEOUT:
-            return f"{self.sh.before.strip()}\n[Timeout]"
+            out = f"{self.sh.before.strip()}\n[Timeout]"
+
+        out = out.replace("\r\n", "\n")
+        out = "\n".join(line.split("\r")[-1] for line in out.split("\n"))
+        return re.sub(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])", "", out)
 
     def get_full_form(self, cmd=None) -> str:
         if not cmd:
