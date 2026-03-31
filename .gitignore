@@ -1,0 +1,25 @@
+# Initially taken from Github's Python gitignore file
+
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs and sandbox
+*.ipynb
+sandbox/
+runs/
+
+# Environments
+.env
+.venv
+env/
+venv/
+.conda/
+ENV/
+env.bak/
+venv.bak/
+
+# Local data
+chat.json
+repo_index.json
